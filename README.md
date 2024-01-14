@@ -87,6 +87,7 @@ python LLMJudge_RAG_Compared_Scoring.py \
        --alpha 0.05 \
        --num_trials 1000 \
        --evaluation_datasets <evaluation_datasets as list> \
+       --few_shot_prompt_filename <few_shot_prompt_filename> \
        --checkpoints <checkpoints as list> \
        --labels <label columns as list> \
        --GPT_scoring <True or False> \
