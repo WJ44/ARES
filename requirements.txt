@@ -69,7 +69,7 @@ GitPython==3.1.41
 gql==3.4.1
 graphql-core==3.2.3
 greenlet==2.0.2
-huggingface-hub==0.16.4
+huggingface-hub
 humanfriendly==10.0
 ijson==3.2.0.post0
 importlib-metadata==6.6.0
@@ -89,12 +89,12 @@ joblib==1.2.0
 json5==0.9.14
 jsonlines==3.1.0
 jsonpointer==2.3
-jsonschema==4.17.3
+jsonschema
 jupyter==1.0.0
 jupyter-client==8.2.0
 jupyter-console==6.6.3
 jupyter-core==5.3.0
-jupyter-events==0.6.3
+jupyter-events
 jupyter-lsp==2.1.0
 jupyter-server==2.11.2
 jupyter-server-terminals==0.4.4
@@ -244,7 +244,7 @@ thinc==8.1.10
 threadpoolctl==3.1.0
 tiktoken==0.4.0
 tinycss2==1.2.1
-tokenizers==0.13.3
+tokenizers
 tomli==2.0.1
 tornado==6.3.3
 tqdm==4.65.0
