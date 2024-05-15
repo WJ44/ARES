@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     # Load model for synthetic query generation 
     if flan_approach:
-        model_choice = "google/flan-t5-xxl" #google/flan-t5-xxl
+        model_choice = "google/flan-t5-base" #google/flan-t5-xxl
         tokenizer = AutoTokenizer.from_pretrained(model_choice)
         model = AutoModelForSeq2SeqLM.from_pretrained(model_choice)
 

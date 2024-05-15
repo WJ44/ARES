@@ -6,6 +6,7 @@ import ast
 import json
 import copy
 import openai
+
 from tqdm import tqdm
 import csv
 from datasets import Dataset
@@ -14,6 +15,8 @@ import torch
 import numpy as np
 import random
 import pdb
+
+from sentence_transformers import SentenceTransformer
 
 #################################################
 
@@ -31,8 +34,10 @@ def get_embedding(text, model="text-embedding-ada-002"):
 def generate_index(dataframe):
    dataframe = dataframe.drop_duplicates(subset="document")
    tqdm.pandas(desc="Generating embeddings...", total=dataframe.shape[0])
-   dataframe['embeddings'] = dataframe["document"].progress_apply(lambda x: get_embedding(x, model='text-embedding-ada-002'))
-   dataframe =  dataframe[dataframe['embeddings'].apply(lambda x: len(x)) == 1536]
+#    dataframe['embeddings'] = dataframe["document"].progress_apply(lambda x: get_embedding(x, model='text-embedding-ada-002'))
+   model = SentenceTransformer("multi-qa-MiniLM-L6-cos-v1")
+   dataframe['embeddings'] = dataframe["document"].progress_apply(lambda x: model.encode(x).tolist())
+   dataframe =  dataframe[dataframe['embeddings'].apply(lambda x: len(x)) == 384]
    
    dataframe = Dataset.from_pandas(dataframe)
    dataframe.add_faiss_index(column="embeddings")
@@ -43,10 +48,12 @@ def filter_synthetic_queries(queries_dataset, document_index):
     total_filtered_questions = []
     total_labels = []
     
+    model = SentenceTransformer("multi-qa-MiniLM-L6-cos-v1")
+
     queries_dataset = Dataset.from_pandas(queries_dataset)
     for i in tqdm(range(len(queries_dataset))):
         question = queries_dataset[i]["synthetic_query"]
-        question_embedding = np.array(get_embedding(question)).astype(np.float32)
+        question_embedding = np.array(model.encode(question).tolist()).astype(np.float32)
         scores, samples = document_index.get_nearest_examples("embeddings", question_embedding, k=20)
         if samples["document"][0] == queries_dataset[i]["document"]:
             total_labels.append("Yes")
@@ -83,15 +90,17 @@ def generate_additional_negatives(queries_dataset, document_index, number_of_neg
     queries_dataset_copy = queries_dataset_copy.sample(n=int(len(queries_dataset_copy) * number_of_negatives_added_ratio), random_state=42)
     negative_sample_retrieved = []
 
+    model = SentenceTransformer("multi-qa-MiniLM-L6-cos-v1")
+
     for i in tqdm(range(len(queries_dataset_copy))):
         question = queries_dataset_copy.iloc[i]["synthetic_query"]
-        question_embedding = np.array(get_embedding(question)).astype(np.float32)
+        question_embedding = np.array(model.encode(question).tolist()).astype(np.float32)
         scores, samples = document_index.get_nearest_examples(
-            "embeddings", question_embedding, k=100
+            "embeddings", question_embedding, k=5
         )
-        if len(samples) <= 100:
+        if len(samples) <= 5:
             raise ValueError('Less than 100 documents in dataset! Please add more documents for retrieval.')
-        random_negative_sample = random.randint(lower_bound_for_negatives, len(samples) - 1)
+        random_negative_sample = random.randint(0, len(samples) - 1)
         negative_sample_retrieved.append(random_negative_sample)
         negative_documents.append(samples["document"][random_negative_sample])
         negative_labels.append("No")
@@ -123,9 +132,11 @@ def generate_additional_positives(queries_dataset, document_index, number_of_pos
     queries_dataset_copy = queries_dataset_copy[queries_dataset_copy['Context_Relevance_Label'] == "Yes"]
     queries_dataset_copy = queries_dataset_copy.sample(n=int(len(queries_dataset_copy) * number_of_positives_added_ratio), random_state=42)
 
+    model = SentenceTransformer("multi-qa-MiniLM-L6-cos-v1")
+
     for i in tqdm(range(len(queries_dataset_copy))):
         question = queries_dataset_copy.iloc[i]["synthetic_query"]
-        question_embedding = np.array(get_embedding(question)).astype(np.float32)
+        question_embedding = np.array(model.encode(question).tolist()).astype(np.float32)
         scores, samples = document_index.get_nearest_examples(
             "embeddings", question_embedding, k=100
         )

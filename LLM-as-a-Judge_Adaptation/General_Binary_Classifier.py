@@ -121,7 +121,7 @@ class CustomBERTModel(nn.Module):
             embedding_size = 2048
             self.encoderModel = model_encoding
           
-          elif model_choice in ["google/t5-large-lm-adapt", "google/t5-xl-lm-adapt"]:
+          elif model_choice in ["google/t5-large-lm-adapt", "google/t5-xl-lm-adapt", "google/t5-small-lm-adapt"]:
 
             model_encoding = AutoModelForSequenceClassification.from_pretrained(model_choice)
             embedding_size = 1024
@@ -153,7 +153,7 @@ class CustomBERTModel(nn.Module):
 
     def forward(self, ids, mask, labels=None, decoder_input_ids=None):
           
-        if model_choice in ["t5-small", "google/t5-xl-lm-adapt", "google/t5-large-lm-adapt", "mosaicml/mpt-1b-redpajama-200b"]:
+        if model_choice in ["t5-small", "google/t5-xl-lm-adapt", "google/t5-large-lm-adapt", "mosaicml/mpt-1b-redpajama-200b", "google/t5-small-lm-adapt"]:
             total_output = self.encoderModel(input_ids=ids, attention_mask=mask) #labels=labels
             return total_output['logits']
         else:
@@ -207,7 +207,7 @@ if __name__ == '__main__':
 
     ############################################################
 
-    model_choice = "microsoft/deberta-v3-large"
+    model_choice = "google/t5-small-lm-adapt" #"microsoft/deberta-v3-large"
     max_token_length = 2048
     tokenizer = AutoTokenizer.from_pretrained(model_choice, model_max_length=max_token_length)
 
@@ -371,9 +371,9 @@ if __name__ == '__main__':
             print(len(dev_set_text))
             print(len(test_set_text))
             print("Training example")
-            print(train_set_text[100])
+            print(train_set_text[5])
             print('---------------------------------------------------')
-            print(train_set_label[100])
+            print(train_set_label[5])
             print('---------------------------------------------------')
 
 
@@ -537,7 +537,7 @@ if __name__ == '__main__':
                             else:
                                 new_batch = {'ids': batch['input_ids'].to(device), 'mask': batch['attention_mask'].to(device)}
 
-                            if model_choice in ["t5-small", "google/t5-xl-lm-adapt", "google/t5-large-lm-adapt"]:
+                            if model_choice in ["t5-small", "google/t5-xl-lm-adapt", "google/t5-large-lm-adapt", "google/t5-small-lm-adapt"]:
                                 new_batch['decoder_input_ids'] = batch['labels'].reshape(batch['labels'].shape[0], 1).to(device)
 
                             outputs = model(**new_batch)
